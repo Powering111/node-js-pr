@@ -76,16 +76,18 @@ function readAsync(fileName, callback) {
 function readBase(name,callback){
     readAsync(baseDirectory+name+".html",callback);
 }
-let baseFiles=['menu','image'];
+let baseFiles=['menu','image','header'];
 function sendData(res,data){
     async.map(baseFiles, readBase, function(err, basedatas) {
         if(err){
             console.log("error");
             return;
         }
+        
         for(i in baseFiles){
             data=replaceAll(data,"${"+baseFiles[i]+"}",basedatas[i]);
         }
+        
         send200(res,data);
     });
     

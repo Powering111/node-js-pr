@@ -1,3 +1,20 @@
 body{
     background-color:aqua;
 }
+
+.menubar{
+    display:block;
+    background-color:#555555;
+    margin:5px 0px;
+    padding:5px;
+}
+.menubtn{
+    color:white;
+    font-size:20px;
+    text-decoration:none;
+    padding:5px;
+    transition:background-color 0.5s;
+}
+.menubtn:hover{
+    background-color:#DDDDDD;
+}
