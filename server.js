@@ -7,6 +7,7 @@ const async=require('async');
 const rootDirectory = __dirname + '\\Files\\';
 const htmlDirectory = rootDirectory + 'hypertext\\';
 const resourceDirectory = rootDirectory + 'resources\\';
+const styleDirectory = rootDirectory + 'style\\';
 const baseDirectory = rootDirectory + 'base\\';
 
 
@@ -24,41 +25,52 @@ function respond(req,res){
     console.log(parsedPath);
     
     if(hypertextExt.includes(parsedPath.ext)){
-        let joinedPath=path.join(htmlDirectory,parsedPath.name+'.html');
-        if(joinedPath.indexOf(htmlDirectory)!==0){
-            console.log('invalid request!');
-            return;
-        }
-
-        fs.readFile(joinedPath,"utf8",(err,data)=>{
-            if(err)send404(res);
-            else sendData(res,data);
-        });
+        respondHTML(res,parsedPath.name);
     }
-
-    if(resourceExt.includes(parsedPath.ext)){
-        console.log("resource");
-        let joinedPath=path.join(resourceDirectory,parsedPath.base);
-        if(joinedPath.indexOf(resourceDirectory)!==0){
-            console.log('invalid request!');
-            return;
-        }
-
-        fs.readFile(joinedPath,(err,data)=>{
-            if(err)send404(res);
-            else send200(res,data);
-            
-        });
+    else if(resourceExt.includes(parsedPath.ext)){
+        respondRES(res,parsedPath.base);
     }
-
+    else if(parsedPath.ext==".css"){
+        respondCSS(res,parsedPath.base);
+    }
+    else{
+        respondInvalid(res);
+    }
 }
+
+function respondHTML(res,name){
+    let joinedPath=path.join(htmlDirectory,name+'.html');
+        
+    fs.readFile(joinedPath,"utf8",(err,data)=>{
+        if(err)send404page(res);
+        else sendData(res,data);
+    });
+}
+
+function respondRES(res,basename){
+    let joinedPath=path.join(resourceDirectory,basename);
+
+    fs.readFile(joinedPath,(err,data)=>{
+        if(err)send404(res);
+        else send200(res,data);
+        
+    });
+}
+
+function respondCSS(res,basename){
+    let joinedPath=path.join(styleDirectory,basename);
+    fs.readFile(joinedPath,'utf8',(err,data)=>{
+        if(err)send404(res);
+        else send200(res,data);
+    })
+}
+
 
 function replaceAll(str,from,to){
     return str.split(from).join(to);
 }
 
 function readAsync(fileName, callback) {
-    console.log("reading "+fileName);
     fs.readFile(fileName, 'utf8', callback);
 }
 function readBase(name,callback){
@@ -71,12 +83,9 @@ function sendData(res,data){
             console.log("error");
             return;
         }
-        console.log(basedatas);
         for(i in baseFiles){
-            console.log("${"+baseFiles[i]+"}");
             data=replaceAll(data,"${"+baseFiles[i]+"}",basedatas[i]);
         }
-        console.log(data);
         send200(res,data);
     });
     
@@ -87,9 +96,7 @@ function send200(res,data){
     res.write(data);
     res.end();
 }
-
-function send404(res){
-    console.log("HTTP 404");
+function send404page(res){
     fs.readFile('./Files/hypertext/404.html',(err,data)=>{
         if(err){
             data='404 Not Found';
@@ -98,7 +105,10 @@ function send404(res){
         res.write(data);
         res.end();
     });
-    
+}
+function send404(res){
+    res.writeHead(404);
+    res.end('404 Not Found');
 }
 
 http.createServer(respond).listen(80);
