@@ -1,63 +1,37 @@
 const http=require('http');
 const fs=require('fs');
 const url=require('url');
+const path=require('path');
+const rootDirectory = __dirname + '\\Files';
+const htmlDirectory = rootDirectory + '\\hypertext\\';
+const resourceDirectory = rootDirectory + '\\resources\\';
 
-let allowedPath=['/index','/about','/writename','/repl'];
+const hypertextExt = ['','.','.html'];
+const resourceExt = ['.jpg','.jpeg','.png','.gif','.bmp','.mp3','.mp4'];
 
 function respond(req,res){
     
-    console.log("requested");
-    
     let parsedURL=url.parse(req.url,true);
     let filePath=parsedURL.pathname;
-    
     if(filePath=='/') filePath='/index';
-    if(allowedPath.includes(filePath)){
+
+    
+    
+    let parsedPath=path.parse(filePath);
+    console.log(parsedPath);
+
+    if(hypertextExt.includes(parsedPath.ext)){
+        let joinedPath=path.join(htmlDirectory,filePath);
+        if(joinedPath.indexOf(htmlDirectory)!==0){
+            console.log('invalid request!');
+            return;
+        }
+        console.log(joinedPath);
+    }
+    if(resourceExt.includes(parsedPath.ext)){
 
     }
-    
 }
 
-
-http.createServer(function(req,res){
-    console.log("requested");
-
-    var q=url.parse(req.url,true);
-    if(q.pathname=='/') q.pathname="/index";
-    console.log(q);
-    var filename='./sources'+q.pathname+".html";
-    
-    
-    fs.readFile(filename,function(err,data){
-        if(err){
-            res.writeHead(404,{'Content-Type':'text/html'});
-            res.end("404: File Not Found");
-            return;
-        }
-        if(q.pathname=='/writename'){
-            var post_data='';
-            req.on('data',function(chunk){
-                post_data+=chunk;
-            });
-            req.on('end',function(){
-                const params=new URLSearchParams(post_data);
-                console.log(post_data);
-                console.log(params);
-                var post=Object.fromEntries(params);
-                console.log(post);
-                console.log("received post data");
-                res.writeHead(200,{'Content-Type':'text/html'});
-
-                res.end(data+"your name is "+post.name);
-            });
-        }
-        else{
-            res.writeHead(200,{'Content-Type':'text/html'});
-            res.write(data);
-            res.end();
-            return;
-        }
-    })
-}).listen(80);
-
+http.createServer(respond).listen(80);
 console.log('Started server');
