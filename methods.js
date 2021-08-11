@@ -1,19 +1,40 @@
-exports.menu=function(){
-    return `<div class="menubar">
-        <a href="index" class="menubtn">HOME</a>
-        <a href="about" class="menubtn">ABOUT</a>
-        <a href="repl" class="menubtn">JAVASCRIPT</a>
-    </div>`;
+const fs = require("fs")
+const log = require('./logger.js');
+
+const basename=['header','image','menu','title'];
+let baseData=Array(3);
+exports.init=function(){
+    log.l('Reading Base Data');
+
+    let loadedbase=0;
+    basename.forEach((item)=>{
+        let path = './Files/base/'+item+'.html';
+        fs.readFile(path,'utf8',function(err,data){
+            if(err){
+                log.e(item+' Not Found');
+                process.exit(1);
+            }
+            baseData[item]=data;
+
+            loadedbase++;
+            log.p('Loaded '+item,'Base Data',loadedbase,basename.length);
+        });
+    });
 }
+
+exports.title=function(){
+    return baseData.title;
+}
+
+exports.menu=function(){
+    return baseData.menu;
+}
+
 exports.header=function(){
-    return `<meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <link rel="stylesheet" href="style.css">`;
+    return baseData.header;
 }
 exports.image=function(){
-    return '<img src="hello.jpg" alt="hello" width="500px">';
+    return baseData.image;
 }
 
 exports.shownumber=function(a){
@@ -27,4 +48,8 @@ exports.shownumber=function(a){
 
 exports._ip=function(req,res){
     return '당신의 아이피 주소는 '+(req.headers['x-forwarded-for']||req.connection.remoteAddress)+' 입니다.';
+}
+
+exports.useVar=function(variables){
+    return variables['hi'];
 }
