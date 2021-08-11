@@ -76,9 +76,12 @@ function readAsync(fileName, callback) {
 function readBase(name,callback){
     readAsync(baseDirectory+name+".html",callback);
 }
+function readListedBase(baseFiles,callback){
+    async.map(baseFiles,readBase,callback);
+}
 let baseFiles=['menu','image','header'];
 function sendData(res,data){
-    async.map(baseFiles, readBase, function(err, basedatas) {
+    readListedBase(baseFiles,  function(err, basedatas) {
         if(err){
             console.log("error");
             return;
