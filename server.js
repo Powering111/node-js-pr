@@ -5,6 +5,7 @@ const path=require('path');
 const readline=require('readline');
 
 const HTMLProcessor=require('./HTMLProcessor.js');
+const commandProcessor=require('./commandProcessor.js');
 const methods=require('./methods.js');
 const log = require('./logger.js');
 
@@ -104,3 +105,5 @@ log.l('Starting Server...');
 methods.init();
 
 http.createServer(respond).listen(80);
+const reader = readline.createInterface({input:process.stdin,output:process.stdout});
+reader.on("line",commandProcessor.process);
