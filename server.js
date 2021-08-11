@@ -2,13 +2,13 @@ const http=require('http');
 const fs=require('fs');
 const url=require('url');
 const path=require('path');
-const async=require('async');
+
+const methods=require('./methods.js');
 
 const rootDirectory = __dirname + '\\Files\\';
 const htmlDirectory = rootDirectory + 'hypertext\\';
 const resourceDirectory = rootDirectory + 'resources\\';
 const styleDirectory = rootDirectory + 'style\\';
-const baseDirectory = rootDirectory + 'base\\';
 
 
 const hypertextExt = ['','.','.html'];
@@ -22,86 +22,111 @@ function respond(req,res){
     if(filePath=='/') filePath='/index';
 
     let parsedPath=path.parse(filePath);
-    console.log(parsedPath);
-    
-    if(hypertextExt.includes(parsedPath.ext)){
-        respondHTML(res,parsedPath.name);
+    console.log("Requested ",filePath);
+    processExt(req,res,parsedPath);
+}
+
+function processExt(req,res,parsedPath){
+    let ext=parsedPath.ext;
+    if(hypertextExt.includes(ext)){
+        respondHTML(req,res,parsedPath.name);
     }
-    else if(resourceExt.includes(parsedPath.ext)){
-        respondRES(res,parsedPath.base);
+    else if(resourceExt.includes(ext)){
+        respondRES(req,res,parsedPath.base);
     }
-    else if(parsedPath.ext==".css"){
-        respondCSS(res,parsedPath.base);
+    else if(ext==".css"){
+        respondCSS(req,res,parsedPath.base);
     }
     else{
-        respondInvalid(res);
+        respondInvalid(req,res);
     }
 }
 
-function respondHTML(res,name){
+function respondHTML(req,res,name){
     let joinedPath=path.join(htmlDirectory,name+'.html');
         
     fs.readFile(joinedPath,"utf8",(err,data)=>{
-        if(err)send404page(res);
-        else sendData(res,data);
+        if(err)send404page(req, res);
+        else sendData(req, res,data);
     });
 }
 
-function respondRES(res,basename){
+function respondRES(req, res,basename){
     let joinedPath=path.join(resourceDirectory,basename);
 
     fs.readFile(joinedPath,(err,data)=>{
-        if(err)send404(res);
-        else send200(res,data);
+        if(err)send404(req, res,'404 Not Found');
+        else send200(req, res,data);
         
     });
 }
 
-function respondCSS(res,basename){
+function respondCSS(req, res,basename){
     let joinedPath=path.join(styleDirectory,basename);
     fs.readFile(joinedPath,'utf8',(err,data)=>{
-        if(err)send404(res);
-        else send200(res,data);
+        if(err)send404(req, res,'404 Not Found');
+        else send200(req, res,data);
     })
 }
 
-
-function replaceAll(str,from,to){
-    return str.split(from).join(to);
+function respondInvalid(req, res){
+    console.log("requested invalid file");
+    res.writeHead(404,{'Content-Type':'text/html'});
+    res.write("You have requested Invalid File.");
+    res.end();
 }
 
-function readAsync(fileName, callback) {
-    fs.readFile(fileName, 'utf8', callback);
-}
-function readBase(name,callback){
-    readAsync(baseDirectory+name+".html",callback);
-}
-function readListedBase(baseFiles,callback){
-    async.map(baseFiles,readBase,callback);
-}
-let baseFiles=['menu','image','header'];
-function sendData(res,data){
-    readListedBase(baseFiles,  function(err, basedatas) {
-        if(err){
-            console.log("error");
-            return;
+
+function sendData(req,res,data){
+    for(let i=0;i<data.length;i++){
+        if(data[i]=='$' && data[i+1]=='{'){
+            
+            let j=i+2;
+            let funcName='';
+            let hasArgument=false;
+            let argument='';
+            while(data[j]!='}'){
+                if(!hasArgument){
+                    if(data[j]==':'){
+                        hasArgument=true;
+                    }else{
+                        funcName+=data[j];
+                    }
+                }
+                else{
+                    argument+=data[j];
+                }
+                j++;
+            }
+
+            let funcResult;
+            if(funcName[0]=='_'){
+                if(!hasArgument){
+                    funcResult=methods[funcName](req,res);
+                }
+                else{
+                    funcResult=methods[funcName](req,res,argument);
+                }
+            }
+            else{
+                if(!hasArgument){
+                    funcResult=methods[funcName]();
+                }else{
+                    funcResult=methods[funcName](argument);
+                }
+            }
+            data=data.substring(0,i)+funcResult+data.substring(j+2);
         }
-        
-        for(i in baseFiles){
-            data=replaceAll(data,"${"+baseFiles[i]+"}",basedatas[i]);
-        }
-        
-        send200(res,data);
-    });
-    
+    }
+    send200(req,res,data);
 }
 
-function send200(res,data){
+function send200(req, res, data){
     res.writeHead(200,{'Content-Type':'text/html'});
     res.write(data);
     res.end();
 }
-function send404page(res){
+function send404page(req, res){
     fs.readFile('./Files/hypertext/404.html',(err,data)=>{
         if(err){
             data='404 Not Found';
@@ -111,9 +136,9 @@ function send404page(res){
         res.end();
     });
 }
-function send404(res){
+function send404(req, res, message){
     res.writeHead(404);
-    res.end('404 Not Found');
+    res.end(message);
 }
 
 http.createServer(respond).listen(80);
