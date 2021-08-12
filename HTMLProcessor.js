@@ -2,7 +2,7 @@ const methods=require('./Files/methods.js');
 const baseLoader = require('./baseLoader.js');
 const log = require('./logger.js');
 
-exports.process=function(req,res,data){
+exports.process=function(req,res,data,isBaseFile){
     let variables = {hi:'hello'};
     let i,j;
     for(i=0;i<data.length-1;i++){
@@ -39,10 +39,6 @@ exports.process=function(req,res,data){
                     log.w('funcName'+funcName+' is invalid');
                     continue;
                 }
-                if(!parameter.match(/^[a-zA-Z]*$/i)){
-                    log.w('parameter '+parameter+' is invalid');
-                    continue;
-                }
 
                 
                 if(funcName[0]=='_'){
@@ -50,9 +46,18 @@ exports.process=function(req,res,data){
                 }
 
                 if(funcName==''){
-                    if(parameter!=''){
-                        funcResult=baseLoader.base(parameter);
-                    }else continue;
+                    if(isBaseFile) {
+                        log.w('cannot load base file in base file.');
+                        funcResult='';
+                    }else{
+                        if(parameter!=''){
+
+                            funcResult=baseLoader.base(req,res,parameter);
+                        }else{
+                            log.w('function Name and parameter not exist');
+                            continue;
+                        }
+                    }
                 }
                 else{
                     if(typeof methods[funcName] !== 'function'){
@@ -68,6 +73,7 @@ exports.process=function(req,res,data){
             }else continue;
 
             data=replaceData(data,funcResult,i,j);
+            i+=funcResult.length;
         }
         else if(data[i]=='#'&&(i==0||data[i-1]!='$')){
             let varName='',varValue='';
@@ -94,17 +100,21 @@ exports.process=function(req,res,data){
                     log.w('variable '+varName+' is invalid.');
                     continue;
                 }
+
+                let funcResult;
                 if(willChange){
                     variables[varName]=varValue;
-                    data=replaceData(data,'',i,j);
+                    funcResult='';
                 }else{
                     if(typeof variables[varName]!=='undefined' && variables[varName]){
-                        data=replaceData(data,variables[varName],i,j);
+                        funcResult=variables[varName];
                     }else{
                         log.w('variable '+varName+' not exist');
-                        continue;
+                        funcResult='';
                     }
                 }
+                data=replaceData(data,funcResult,i,j);
+                i+=funcResult.length;
             }else continue;
         }
     }

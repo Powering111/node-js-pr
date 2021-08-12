@@ -17,7 +17,16 @@ const styleDirectory = rootDirectory + 'style\\';
 const htmlExt = ['','.','.html'];
 const resExt = ['.jpg','.jpeg','.png','.gif','.bmp','.mp3','.mp4'];
 
+let enabled=true;
+let disabledMsg='';
+
 function respond(req,res){
+    if(!enabled){
+        res.writeHead(500);
+        res.end(disabledMsg);
+        return;
+    }
+
     let parsedURL=url.parse(req.url,true);
     let filePath=parsedURL.pathname;
     if(filePath=='/') filePath='/index';
@@ -77,7 +86,7 @@ function respondInvalid(res){
 
 
 function processAndSendHTML(req,res,data){
-    let processedData = HTMLProcessor.process(req,res,data);
+    let processedData = HTMLProcessor.process(req,res,data,false);
     send200(res,processedData);
 }
 
@@ -99,6 +108,17 @@ function send404(res, message){
     log.e("404 Not Found");
     res.writeHead(404);
     res.end(message);
+}
+
+exports.reload=function(){
+    log.l('Reloading Server...');
+    baseLoader.load();
+
+}
+exports.setEnabled=function(b,message=''){
+    enabled=b;
+    disabledMsg=message;
+    log.l('Server is '+(b?'enabled':'disabled'));
 }
 
 log.l('Starting Server...');

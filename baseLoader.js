@@ -1,11 +1,12 @@
 const fs = require("fs")
+
 const log = require('./logger.js');
+const HTMLProcessor=require('./HTMLProcessor.js');
 
 const basename=['header','image','menu','title'];
-let baseData=Array(3);
+let baseData=Array();
 
 exports.load=function(){
-    log.l('Reading Base Data');
 
     let loadedbase=0;
     basename.forEach((item)=>{
@@ -23,6 +24,7 @@ exports.load=function(){
     });
 }
 
-exports.base=function(name){
-    return baseData[name];
+exports.base=function(req,res,name){
+    log.w('base');
+    return HTMLProcessor.process(req,res,baseData[name],true);
 }

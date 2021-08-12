@@ -1,19 +1,4 @@
 
-exports.title=function(){
-    return baseData.title;
-}
-
-exports.menu=function(){
-    return baseData.menu;
-}
-
-exports.header=function(){
-    return baseData.header;
-}
-exports.image=function(){
-    return baseData.image;
-}
-
 exports.shownumber=function(a){
     let ret='';
     for(let i=1;i<=a;i++){
