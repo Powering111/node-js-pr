@@ -1,6 +1,6 @@
-const methods=require('./methods.js');
+const methods=require('./Files/methods.js');
+const baseLoader = require('./baseLoader.js');
 const log = require('./logger.js');
-const { createCipher } = require('crypto');
 
 exports.process=function(req,res,data){
     let variables = {hi:'hello'};
@@ -20,7 +20,7 @@ exports.process=function(req,res,data){
                 j++;
                 
                 while(data[j]!='}'){
-                    if(data[j]=='\n')continue;
+                    if(data[j]=='\n')break;
                     if(!hasParameter){
                         if(data[j]==':'){
                             hasParameter=true;
@@ -35,7 +35,7 @@ exports.process=function(req,res,data){
                 }
 
                 funcName=funcName.trim();
-                if(!funcName.match(/^[_]?[a-zA-Z]+$/i)){
+                if(!funcName.match(/^[_]?[a-zA-Z]*$/i)){
                     log.w('funcName'+funcName+' is invalid');
                     continue;
                 }
@@ -44,19 +44,29 @@ exports.process=function(req,res,data){
                     continue;
                 }
 
-                if(typeof methods[funcName] !== 'function'){
-                    log.w('function '+funcName+' not exist');
-                    continue;
-                }
-
+                
                 if(funcName[0]=='_'){
                     sendReqRes=true;
                 }
 
+                if(funcName==''){
+                    if(parameter!=''){
+                        funcResult=baseLoader.base(parameter);
+                    }else continue;
+                }
+                else{
+                    if(typeof methods[funcName] !== 'function'){
+                        log.w('function '+funcName+' not exist');
+                        continue;
+                    }
+    
+                    funcResult=runFunction(
+                    {funcName:funcName,sendReqRes:sendReqRes,hasParameter:hasParameter,sendVariables:sendVariables},
+                    {req:req,res:res,parameter:parameter,variables:variables});
+                }
+
             }else continue;
-            funcResult=runFunction(
-                {funcName:funcName,sendReqRes:sendReqRes,hasParameter:hasParameter,sendVariables:sendVariables},
-                {req:req,res:res,parameter:parameter,variables:variables});
+
             data=replaceData(data,funcResult,i,j);
         }
         else if(data[i]=='#'&&(i==0||data[i-1]!='$')){
@@ -86,8 +96,14 @@ exports.process=function(req,res,data){
                 }
                 if(willChange){
                     variables[varName]=varValue;
+                    data=replaceData(data,'',i,j);
                 }else{
-                    data=replaceData(data,variables[varName],i,j);
+                    if(typeof variables[varName]!=='undefined' && variables[varName]){
+                        data=replaceData(data,variables[varName],i,j);
+                    }else{
+                        log.w('variable '+varName+' not exist');
+                        continue;
+                    }
                 }
             }else continue;
         }

@@ -6,7 +6,7 @@ const readline=require('readline');
 
 const HTMLProcessor=require('./HTMLProcessor.js');
 const commandProcessor=require('./commandProcessor.js');
-const methods=require('./methods.js');
+const baseLoader = require('./baseLoader.js');
 const log = require('./logger.js');
 
 const rootDirectory = __dirname + '\\Files\\';
@@ -102,7 +102,7 @@ function send404(res, message){
 }
 
 log.l('Starting Server...');
-methods.init();
+baseLoader.load();
 
 http.createServer(respond).listen(80);
 const reader = readline.createInterface({input:process.stdin,output:process.stdout});
