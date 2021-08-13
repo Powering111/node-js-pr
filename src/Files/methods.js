@@ -15,3 +15,7 @@ exports._ip=function(req,res){
 exports.useVar=function(variables){
     return variables['hi'];
 }
+
+exports._printName=function(req,res){
+    return '<br>your name is '+req.POST['name']+'.</br>';
+}

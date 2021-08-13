@@ -37,9 +37,12 @@ Files/
 - **${:basename}** is replaced by basefile *basename.html*
 - **#{variableName}** is replaced by custom variable *variableName*
 - **#{variableName=value}** will make custom variable *variableName* to *value*
+- **#GET{name}** is replaced by GET parameter.
+- **#POST{name}** is replaced by POST parameter.
 - If *functionName* starts with **_** (underscore character), the function is called with *req* as first parameter, *res* as second parameter, and *parameter* as third parameter if exists.
-- You should make your method in *methods.js* with correct parameters. Or your code will not work and even server can die.
-
+- You can change *methods.js* by your own. You **should** fit your parameters like above to avoid error.
+- You **should** make your first parameter to *req*, second parameter to *res* when you have set first character of function name to **_** (underscore character).
+- You can access **GET** data with *req.GET* object, **POST** data with *req.POST* object. (*req* is the first variable name of function which has first character underscore.)
 
 ## Contributors
 - Juntae Jeong

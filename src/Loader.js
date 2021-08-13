@@ -7,7 +7,7 @@ const basename=['header','image','menu','title'];
 let baseData=Array();
 
 exports.load=function(){
-
+    initialize();
     let loadedbase=0;
     basename.forEach((item)=>{
         let path = './Files/base/'+item+'.html';
@@ -25,6 +25,32 @@ exports.load=function(){
 }
 
 exports.base=function(req,res,name){
-    log.w('base');
     return HTMLProcessor.process(req,res,baseData[name],true);
+}
+
+function initialize(){
+    log.s('checking Files...');
+
+    make('./Files/');
+    make('./Files/base/');
+    make('./Files/hypertext/');
+    make('./Files/resources/');
+    make('./Files/style/');
+    basename=fs.readdirSync('./Files/base/');
+
+    if(fs.existsSync('./Files/hypertext/index.html')){
+        return;
+    }else{
+        log.l('index.html not exists. Creating with "Hello World"');
+        fs.writeFileSync('./Files/hypertext/index.html','Hello World');
+    }
+}
+
+function make(dir){
+    if(fs.existsSync(dir)){
+        return;
+    }else{
+        log.l('Directory '+dir+' not exist. Creating directory...');
+        fs.mkdirSync(dir);
+    }
 }

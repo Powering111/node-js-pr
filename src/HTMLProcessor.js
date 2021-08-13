@@ -1,5 +1,5 @@
 const methods=require('./Files/methods.js');
-const baseLoader = require('./baseLoader.js');
+const Loader = require('./Loader.js');
 const log = require('./logger.js');
 
 exports.process=function(req,res,data,isBaseFile){
@@ -52,7 +52,7 @@ exports.process=function(req,res,data,isBaseFile){
                     }else{
                         if(parameter!=''){
 
-                            funcResult=baseLoader.base(req,res,parameter);
+                            funcResult=Loader.base(req,res,parameter);
                         }else{
                             log.w('function Name and parameter not exist');
                             continue;
@@ -100,7 +100,6 @@ exports.process=function(req,res,data,isBaseFile){
                     log.w('variable '+varName+' is invalid.');
                     continue;
                 }
-
                 let funcResult;
                 if(willChange){
                     variables[varName]=varValue;
@@ -115,9 +114,35 @@ exports.process=function(req,res,data,isBaseFile){
                 }
                 data=replaceData(data,funcResult,i,j);
                 i+=funcResult.length;
-            }else continue;
+            }else if(data[i+1]=='G' && data[i+2]=='E' && data[i+3]=='T'){
+                let j=i+5;
+                let varName='';
+                while(data[j]!='}'){
+                    if(data[j]=='\n')break;
+                    varName+=data[j];
+                    j++;
+                }
+                let funcResult=req.GET[varName];
+                data=replaceData(data,funcResult,i,j);
+
+                i+=funcResult.length;
+            }else if(data[i+1]=='P' && data[i+2]=='O' && data[i+3]=='S' && data[i+4]=='T'){
+                let j=i+6;
+                let varName='';
+                while(data[j]!='}'){
+                    if(data[j]=='\n')break;
+                    varName+=data[j];
+                    j++;
+                }
+                let funcResult=req.POST[varName];
+                data=replaceData(data,funcResult,i,j);
+
+                i+=funcResult.length;
+            }
+            else continue;
         }
     }
+    
     return data;
 }
 

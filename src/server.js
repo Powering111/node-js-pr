@@ -6,7 +6,7 @@ const readline=require('readline');
 
 const HTMLProcessor=require('./HTMLProcessor.js');
 const commandProcessor=require('./commandProcessor.js');
-const baseLoader = require('./baseLoader.js');
+const Loader = require('./Loader.js');
 const log = require('./logger.js');
 
 const rootDirectory = __dirname + '\\Files\\';
@@ -15,7 +15,7 @@ const resDirectory = rootDirectory + 'resources\\';
 const styleDirectory = rootDirectory + 'style\\';
 
 const htmlExt = ['','.','.html'];
-const resExt = ['.jpg','.jpeg','.png','.gif','.bmp','.mp3','.mp4'];
+const resExt = ['.jpg','.jpeg','.png','.gif','.bmp','.mp3','.mp4','.ico'];
 
 let enabled=true;
 let disabledMsg='';
@@ -26,15 +26,32 @@ function respond(req,res){
         res.end(disabledMsg);
         return;
     }
-
     let parsedURL=url.parse(req.url,true);
     let filePath=parsedURL.pathname;
     if(filePath=='/') filePath='/index';
 
     let parsedPath=path.parse(filePath);
-    log.s("Requested "+filePath);
-
-    processExt(req,res,parsedPath);
+    
+    if(req.method=='GET'){
+        req.GET=parsedURL.query;
+    }
+    if(req.method=='POST'){
+        let post_data='';
+            req.on('data',function(chunk){
+                post_data+=chunk;
+            });
+            req.on('end',function(){
+                const params=new URLSearchParams(post_data);
+                let post=Object.fromEntries(params);
+                log.s('Requested '+filePath+' [POST]');
+                req.POST=post;
+                processExt(req,res,parsedPath);
+            });
+    }
+    else{
+        log.s("Requested "+filePath);
+        processExt(req,res,parsedPath);
+    }
 }
 
 function processExt(req,res,parsedPath){
@@ -84,9 +101,10 @@ function respondInvalid(res){
 }
 
 
-
 function processAndSendHTML(req,res,data){
+    console.log('processing HTML');
     let processedData = HTMLProcessor.process(req,res,data,false);
+    console.log(processedData);
     send200(res,processedData);
 }
 
@@ -112,7 +130,7 @@ function send404(res, message){
 
 exports.reload=function(){
     log.l('Reloading Server...');
-    baseLoader.load();
+    Loader.load();
 
 }
 exports.setEnabled=function(b,message=''){
@@ -122,7 +140,7 @@ exports.setEnabled=function(b,message=''){
 }
 
 log.l('Starting Server...');
-baseLoader.load();
+Loader.load();
 
 http.createServer(respond).listen(80);
 const reader = readline.createInterface({input:process.stdin,output:process.stdout});
