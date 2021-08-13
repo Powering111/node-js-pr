@@ -19,3 +19,7 @@ exports.useVar=function(variables){
 exports._printName=function(req,res){
     return '<br>your name is '+req.POST['name']+'.</br>';
 }
+
+exports._getname=function(req,res){
+    return 'Name : '+req.GET['name']+'<br>What : '+req.GET['what']+'<br>';
+}

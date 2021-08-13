@@ -19,11 +19,10 @@ const resExt = ['.jpg','.jpeg','.png','.gif','.bmp','.mp3','.mp4','.ico'];
 
 let enabled=true;
 let disabledMsg='';
-
+log.s('current Directory : '+__dirname);
 function respond(req,res){
     if(!enabled){
-        res.writeHead(500);
-        res.end(disabledMsg);
+        send500(res,disabledMsg);
         return;
     }
     let parsedURL=url.parse(req.url,true);
@@ -103,9 +102,13 @@ function respondInvalid(res){
 
 function processAndSendHTML(req,res,data){
     console.log('processing HTML');
-    let processedData = HTMLProcessor.process(req,res,data,false);
-    console.log(processedData);
-    send200(res,processedData);
+    try{
+        let processedData = HTMLProcessor.process(req,res,data,false);
+        send200(res,processedData);
+    }catch(e){
+        log.e(e);
+        send500(res,'Document has an error.');
+    }
 }
 
 function send200(res, data){
@@ -128,6 +131,11 @@ function send404(res, message){
     res.end(message);
 }
 
+function send500(res,message){
+    res.writeHead(500);
+    res.end(message);
+}
+
 exports.reload=function(){
     log.l('Reloading Server...');
     Loader.load();
@@ -139,9 +147,19 @@ exports.setEnabled=function(b,message=''){
     log.l('Server is '+(b?'enabled':'disabled'));
 }
 
-log.l('Starting Server...');
 Loader.load();
+log.l('Starting '+Loader.getSetting.name);
 
-http.createServer(respond).listen(80);
-const reader = readline.createInterface({input:process.stdin,output:process.stdout});
-reader.on("line",commandProcessor.process);
+try{
+    let port = Loader.getSetting().port;
+    http.createServer(respond).listen(port);
+}
+catch(e){
+    console.log(e);
+    process.exit(1);
+}
+
+if(Loader.getSetting().useCommands){
+    const reader = readline.createInterface({input:process.stdin,output:process.stdout});
+    reader.on("line",commandProcessor.process);
+}

@@ -3,10 +3,10 @@ const Loader = require('./Loader.js');
 const log = require('./logger.js');
 
 exports.process=function(req,res,data,isBaseFile){
-    let variables = {hi:'hello'};
+    let variables = {};
     let i,j;
+    log.s(data.length);
     for(i=0;i<data.length-1;i++){
-        
         if(data[i]=='$'){
             let funcResult;
             let funcName='',parameter='';
@@ -71,7 +71,7 @@ exports.process=function(req,res,data,isBaseFile){
                 }
 
             }else continue;
-
+            funcResult=String(funcResult);
             data=replaceData(data,funcResult,i,j);
             i+=funcResult.length;
         }
@@ -112,6 +112,7 @@ exports.process=function(req,res,data,isBaseFile){
                         funcResult='';
                     }
                 }
+                funcResult=String(funcResult);
                 data=replaceData(data,funcResult,i,j);
                 i+=funcResult.length;
             }else if(data[i+1]=='G' && data[i+2]=='E' && data[i+3]=='T'){
@@ -122,10 +123,15 @@ exports.process=function(req,res,data,isBaseFile){
                     varName+=data[j];
                     j++;
                 }
-                let funcResult=req.GET[varName];
-                data=replaceData(data,funcResult,i,j);
-
-                i+=funcResult.length;
+                let funcResult
+                try{
+                    funcResult=req.GET[varName];
+                    data=replaceData(data,funcResult,i,j);
+                    funcResult=String(funcResult);
+                    i+=funcResult.length;
+                }catch(e){
+                    log.e(e,'GET error');
+                }
             }else if(data[i+1]=='P' && data[i+2]=='O' && data[i+3]=='S' && data[i+4]=='T'){
                 let j=i+6;
                 let varName='';
@@ -134,10 +140,15 @@ exports.process=function(req,res,data,isBaseFile){
                     varName+=data[j];
                     j++;
                 }
-                let funcResult=req.POST[varName];
-                data=replaceData(data,funcResult,i,j);
-
-                i+=funcResult.length;
+                let funcResult;
+                try{
+                    funcResult=req.POST[varName];
+                    funcResult=String(funcResult);
+                    data=replaceData(data,funcResult,i,j);
+                    i+=funcResult.length;
+                }catch(e){
+                    log.e(e,'POST error');
+                }
             }
             else continue;
         }
