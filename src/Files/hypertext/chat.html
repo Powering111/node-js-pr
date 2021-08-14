@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./chat.css">
+    <title>chat</title>
+</head>
+<body>
+    <h1>CHAT</h1>
+    ${:menu}
+    <div id="welcome">
+        <form>
+            <h2 id="welcomeMessage">환영합니다!</h2>
+            <input id="inputName" type="text" placeholder="이름" autocomplete="off" required>
+            <input id="inputRoom" type="text" placeholder="방 ID" autocomplete="off" required>
+            <input type="submit" value="입장">
+        </form>
+    </div>
+    <div id="chat" hidden>
+        <h2 id="roomName"></h2>
+        <div id="messages"><table id="messageList"></table></div>
+        <form>
+            <div>
+                <input id="inputMessage" type="text" placeholder="메시지 입력.." autocomplete="off" required>
+                <input id="sendButton" type="submit" value="전송">
+            </div>
+        </form>
+    </div>
+    <script type="text/JAVASCRIPT" src='/socket.io/socket.io.js'></script>
+    <script type="text/JAVASCRIPT" src="/chat.js"></script>
+</body>
+</html>

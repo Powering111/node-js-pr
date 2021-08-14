@@ -8,18 +8,20 @@ const HTMLProcessor=require('./HTMLProcessor.js');
 const commandProcessor=require('./commandProcessor.js');
 const Loader = require('./Loader.js');
 const log = require('./logger.js');
+const liveProcessor=require('./live.js');
 
 const rootDirectory = __dirname + '\\Files\\';
 const htmlDirectory = rootDirectory + 'hypertext\\';
 const resDirectory = rootDirectory + 'resources\\';
 const styleDirectory = rootDirectory + 'style\\';
+const scriptDirectory = rootDirectory + 'script\\';
 
 const htmlExt = ['','.','.html'];
 const resExt = ['.jpg','.jpeg','.png','.gif','.bmp','.mp3','.mp4','.ico'];
 
 let enabled=true;
 let disabledMsg='';
-log.s('current Directory : '+__dirname);
+
 function respond(req,res){
     if(!enabled){
         send500(res,disabledMsg);
@@ -58,10 +60,13 @@ function processExt(req,res,parsedPath){
         respondHTML(req,res,parsedPath.name);
     }
     else if(resExt.includes(parsedPath.ext)){
-        respondRES(res,parsedPath.base);
+        respondRES(res,parsedPath.base,parsedPath.ext);
     }
     else if(parsedPath.ext==".css"){
         respondCSS(res,parsedPath.base);
+    }
+    else if(parsedPath.ext==".js"){
+        respondJS(res,parsedPath.base);
     }
     else{
         respondInvalid(res);
@@ -77,12 +82,37 @@ function respondHTML(req,res,name){
     });
 }
 
-function respondRES(res,basename){
+function respondRES(res,basename,extension){
     let joinedPath=path.join(resDirectory,basename);
-
+    
+    let contentType='application/octet-stream';
+    switch(extension){
+        case '.jpg':
+        case '.jpeg':
+            contentType='image/jpeg';
+            break;
+        case '.png':
+            contentType='image/png';
+            break;
+        case '.gif':
+            contentType='image/gif';
+            break;
+        case '.bmp':
+            contentType='image/bmp';
+            break;
+        case '.mp3':
+            contentType='audio/mp3';
+            break;
+        case '.mp4':
+            contentType='video/mp4';
+            break;
+        case '.ico':
+            contentType='image/x-icon';
+            break;
+    }
     fs.readFile(joinedPath,(err,data)=>{
         if(err)send404(res,'404 Not Found');
-        else send200(res,data);
+        else send200(res,data,contentType);
         
     });
 }
@@ -91,7 +121,15 @@ function respondCSS(res,basename){
     let joinedPath=path.join(styleDirectory,basename);
     fs.readFile(joinedPath,'utf8',(err,data)=>{
         if(err)send404(res,'404 Not Found');
-        else send200(res, data);
+        else send200(res, data,'text/css');
+    })
+}
+
+function respondJS(res,basename){
+    let joinedPath=path.join(scriptDirectory,basename);
+    fs.readFile(joinedPath,'utf8',(err,data)=>{
+        if(err)send404(res,'404 Not Found');
+        else send200(res, data,'application/js');
     })
 }
 
@@ -111,8 +149,8 @@ function processAndSendHTML(req,res,data){
     }
 }
 
-function send200(res, data){
-    res.writeHead(200,{'Content-Type':'text/html'});
+function send200(res, data, type='text/html'){
+    res.writeHead(200,{'Content-Type':type});
     res.write(data);
     res.end();
 }
@@ -147,12 +185,17 @@ exports.setEnabled=function(b,message=''){
     log.l('Server is '+(b?'enabled':'disabled'));
 }
 
-Loader.load();
-log.l('Starting '+Loader.getSetting.name);
 
+log.l('NODEJS SERVER STARTING');
+log.s('current Directory : '+__dirname);
+Loader.load();
+log.l('Starting '+Loader.getSetting().name);
+
+let httpServer;
 try{
     let port = Loader.getSetting().port;
-    http.createServer(respond).listen(port);
+    httpServer=http.createServer(respond);
+    httpServer.listen(port);
 }
 catch(e){
     console.log(e);
@@ -162,4 +205,8 @@ catch(e){
 if(Loader.getSetting().useCommands){
     const reader = readline.createInterface({input:process.stdin,output:process.stdout});
     reader.on("line",commandProcessor.process);
+}
+
+if(Loader.getSetting().useLiveServer){
+    liveProcessor.init(httpServer);
 }

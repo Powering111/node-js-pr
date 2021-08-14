@@ -6,7 +6,7 @@ const HTMLProcessor=require('./HTMLProcessor.js');
 let basename;
 let baseData=Array();
 
-let setting={'name':'Server','port':80,'log':true,'useCommands':true};
+let setting={'name':'Server','port':80,'log':true,'useCommands':true,'useLiveServer':false};
 
 exports.load=function(){
     initialize();
@@ -44,6 +44,7 @@ function initialize(){
     make(__dirname+'/Files/hypertext/');
     make(__dirname+'/Files/resources/');
     make(__dirname+'/Files/style/');
+    make(__dirname+'/Files/script/');
     basename=fs.readdirSync(__dirname+'/Files/base/');
 
     if(!fs.existsSync(__dirname+'/Files/hypertext/index.html')){
@@ -56,14 +57,12 @@ function initialize(){
         fs.writeFileSync(__dirname+'/Files/config.ini',JSON.stringify(setting));
     }
 
-    fs.readFile(__dirname+'/Files/config.ini','utf8',function(err,data){
-        if(err){
-            log.e('error reading config.ini');
-        }
-        setting=JSON.parse(data);
-        console.log(setting);
-    })
-    log.s('Checking files... done');
+    log.s('Loading Settings');
+    const settingdata=fs.readFileSync(__dirname+'/Files/config.ini','utf8');
+    setting=JSON.parse(settingdata);
+    console.log(setting);
+
+    log.s('Checking done');
 }
 
 exports.getSetting = () => setting;
