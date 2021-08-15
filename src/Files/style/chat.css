@@ -118,3 +118,33 @@ tr.chatFromMe:hover{
     background-color:rgb(255, 255, 224);
 }
 
+#roomList{
+    position:fixed;
+    left:0;
+    top:10px;
+}
+#userList{
+    position:fixed;
+    right:0;
+    top:10px;
+}
+
+:is(#roomList,#userList) a{
+    display:block;
+    width:200px;
+    background-color:rgb(184, 184, 184);
+    color:white;
+    font-size:18px;
+    text-decoration: none;
+}
+
+:is(#roomList,#userList) a:hover{
+    filter:brightness(50%);
+}
+
+#user_me{
+    background-color:rgb(209, 209, 145) !important;
+}
+#user_me::after{
+    content:' (나)';
+}

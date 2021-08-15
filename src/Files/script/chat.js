@@ -2,6 +2,9 @@ const socket = io();
 
 const welcome = document.getElementById("welcome");
 const chat = document.getElementById("chat");
+const roomList=document.querySelector("#roomList div");
+const userList=document.querySelector("#userList div");
+
 const welcomeForm = welcome.querySelector("form");
 const chatForm = chat.querySelector("form");
 
@@ -16,6 +19,7 @@ function scrollToBottom(){
 }
 
 function roomEntered(){
+    messageList.innerHTML='';
     welcome.hidden=true;
     chat.hidden=false;
     chat.querySelector('h2').innerText=`${roomName}`;
@@ -75,4 +79,50 @@ socket.addEventListener('message',(from,message)=>{
     if(isBottom){
         scrollToBottom();
     }
+})
+
+socket.addEventListener('enter',(name)=>{
+    const messageObject=createMessage('SERVER',`${name} 님이 입장했습니다.`);
+    messageObject.classList.add('chatFromServer');
+    messageList.appendChild(messageObject);
+   
+});
+
+socket.addEventListener('exit',(name)=>{
+    const messageObject=createMessage('SERVER',`${name} 님이 퇴장했습니다.`);
+    messageObject.classList.add('chatFromServer');
+    messageList.appendChild(messageObject);
+    
+});
+
+socket.addEventListener('roomUpdate',(rooms)=>{
+    while(roomList.lastChild){
+        roomList.removeChild(roomList.lastChild);
+    }
+    rooms.forEach((room)=>{
+        const elem = document.createElement('a');
+        elem.innerText=room;
+        elem.href=`#${room}`;
+        elem.onclick=function(event){
+            socket.emit('enterRoom',userName, room, roomEntered);
+            roomName=room;
+        }
+        roomList.appendChild(elem);
+    });
+})
+
+socket.addEventListener('userUpdate',(users)=>{
+    while(userList.lastChild){
+        userList.removeChild(userList.lastChild);
+    }
+    users.forEach((user)=>{
+        const elem = document.createElement('a');
+        elem.innerText=user.nickName;
+        elem.id=`user_${user.id}`;
+        elem.href=`#${user.id}`;
+        if(user.id==socket.id){
+            elem.id=`user_me`;
+        }
+        userList.appendChild(elem);
+    });
 })

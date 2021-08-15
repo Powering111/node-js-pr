@@ -5,7 +5,6 @@ const log = require('./logger.js');
 exports.process=function(req,res,data,isBaseFile){
     let variables = {};
     let i,j;
-    log.s(data.length);
     for(i=0;i<data.length-1;i++){
         if(data[i]=='$'){
             let funcResult;
