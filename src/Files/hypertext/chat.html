@@ -18,15 +18,17 @@
             <input type="submit" value="입장">
         </form>
     </div>
-    <div id="chat" hidden>
+    <div id="chatBox" hidden>
         <h2 id="roomName"></h2>
         <div id="messages"><table id="messageList"></table></div>
+        
         <form>
-            <div>
-                <input id="inputMessage" type="text" placeholder="메시지 입력.." autocomplete="off" required>
+            <div id="typingArea">
+                <input id="inputMessage" type="text" placeholder="메시지 입력.." autocomplete="off">
                 <input id="sendButton" type="submit" value="전송">
             </div>
         </form>
+        
     </div>
     
     <div id="roomList">

@@ -1,15 +1,15 @@
 const socket = io();
 
 const welcome = document.getElementById("welcome");
-const chat = document.getElementById("chat");
+const chatBox = document.getElementById("chatBox");
 const roomList=document.querySelector("#roomList div");
 const userList=document.querySelector("#userList div");
 
 const welcomeForm = welcome.querySelector("form");
-const chatForm = chat.querySelector("form");
+const chatForm = chatBox.querySelector("form");
 
-const messages = chat.querySelector('#messages');
-const messageList=chat.querySelector('#messageList');
+const messages = chatBox.querySelector('#messages');
+const messageList=chatBox.querySelector('#messageList');
 
 let userName='Anonymous';
 let roomName='None';
@@ -21,8 +21,8 @@ function scrollToBottom(){
 function roomEntered(){
     messageList.innerHTML='';
     welcome.hidden=true;
-    chat.hidden=false;
-    chat.querySelector('h2').innerText=`${roomName}`;
+    chatBox.hidden=false;
+    chatBox.querySelector('h2').innerText=`${roomName}`;
 }
 function createMessage(from,message){
     const elem=document.createElement('tr');
@@ -56,6 +56,8 @@ chatForm.addEventListener('submit',(event)=>{
     event.preventDefault();
 
     const inputMessage=document.getElementById('inputMessage');
+    
+    if(inputMessage.value=='')return;
     socket.emit('message',userName,inputMessage.value);
 
     const messageObject=createMessage('나',inputMessage.value);

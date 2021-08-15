@@ -21,8 +21,12 @@ exports.init=function(httpServer){
     }
     
     function getUserNames(roomName){
+        
         const clients=wsServer.of('/').adapter.rooms.get(roomName);
         let userNames=Array();
+        if(clients===undefined){
+            return userNames;
+        }
         clients.forEach((client)=>{
             userNames.push({id:client,nickName:wsServer.sockets.sockets.get(client).nickName});
         });
@@ -53,14 +57,14 @@ exports.init=function(httpServer){
             socket.to(socket.roomName).emit('message',from,message);
         });
 
+        let roomName='';
         socket.on("disconnecting",()=>{
-            socket.rooms.forEach((room)=>{
-                socket.to(room).emit('exit',socket.nickName);
-                socket.to(room).emit('userUpdate',getUserNames(room));
-            });
+            socket.to(socket.roomName).emit('exit',socket.nickName);
+            roomName=socket.roomName;
         });
         socket.on("disconnect",()=>{
             wsServer.sockets.emit('roomUpdate',getPublicRooms());
+            socket.to(roomName).emit('userUpdate',getUserNames(roomName));
             log.l('Disconnected!');
         });
     });
