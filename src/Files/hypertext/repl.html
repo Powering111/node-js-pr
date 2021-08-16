@@ -9,20 +9,19 @@
 ${:menu}
 <br>
 
-    <input id="code" onkeyup="keyup(event)">
+    <input id="code" onkeyup="keyup(event)" style="width:100%;height:5em;">
 
     <script type="text/javascript">
-    
     function runCode(code){
-    let fun = new Function(code);
-    fun();
-}
-
-function keyup(e){
-    if(e.key=="Enter"){
-        runCode(document.getElementById('code').value);
+        let fun = new Function(code);
+        fun();
     }
-}
+
+    function keyup(e){
+        if(e.key=="Enter"){
+            runCode(document.getElementById('code').value);
+        }
+    }
     </script>
 </body>
 </html>
